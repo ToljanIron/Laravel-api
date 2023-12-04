@@ -1,0 +1,60 @@
+version: "3.8"
+services:
+  nginx:
+    container_name: api-nginx
+    build:
+      context: ./docker/nginx
+    command: nginx -g "daemon off;"
+    depends_on:
+      - php
+    ports:
+      - "80:80"
+    volumes:
+      - ./logs/nginx:/var/log/nginx
+      - ./api:/var/www/api
+    networks:
+      - app-network
+
+  php:
+    container_name: api-php
+    build:
+      context: ./docker/php
+    depends_on:
+      - mysql
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./api:/var/www/api
+      - ./docker/php/memory_limit.ini:/usr/local/etc/php/conf.d/docker-php-memory_limit.ini
+    working_dir: /var/www/api
+    networks:
+      - app-network
+
+  composer:
+    container_name: api-composer
+    image: composer/composer
+    volumes:
+      - ./api:/var/www/api
+    working_dir: /var/www/api
+    command: install
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql
+    container_name: api-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: '12345'
+      MYSQL_DATABASE: laravel
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database/mysql:/var/lib/mysql
+    logging:
+      driver: none
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: "bridge"
