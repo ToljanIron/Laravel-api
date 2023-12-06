@@ -4,7 +4,7 @@ namespace App\Http\Requests\Address;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateUserAddressRequest extends FormRequest
+class UploadUserAvatarRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,11 +22,8 @@ class UpdateUserAddressRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'address_line_1' => 'required|string|max:255',
-            'state' => 'required|string|max:100',
-            'city' => 'required|string|max:100',
-            'zip' => 'required|string|max:20',
-            'phone' => 'required|string|max:20',
+            'avatar' => 'nullable|image|max:65536'
         ];
     }
 }
+

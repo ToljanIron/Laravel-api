@@ -2,56 +2,94 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\DataTransferObjects\CreateUserAddressDTO;
+use App\DataTransferObjects\UpdateUserAddressDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Address\CreateUserAddressRequest;
 use App\Http\Requests\Address\UpdateUserAddressRequest;
+use App\Http\Requests\Address\UploadUserAvatarRequest;
 use App\Services\ProfileService;
 
 class ProfileController extends Controller
 {
-    private ProfileService $profileService;
-
-    public function __construct(ProfileService $profileService){
-        $this->profileService = $profileService;
-    }
+    public function __construct(private ProfileService $profileService)
+    {}
 
     public function show()
     {
-        $userAddress = $this->profileService->show();
-
-        if (!$userAddress) {
-            return response()->json(['error' => 'Address not found'], 404);
+        try {
+            $userAddress = $this->profileService->show();
+            return response()->json(['success' => $userAddress], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], $e->getCode());
         }
-
-        return response()->json(['success' => $userAddress], 201);
     }
 
     public function store(CreateUserAddressRequest $addressRequest)
     {
-        $userAddress = $this->profileService->store($addressRequest->getDTO());
+        try {
+            $addressDTO = CreateUserAddressDTO::fromRequest($addressRequest);
+            $userAddress = $this->profileService->store($addressDTO);
 
-        return response()->json($userAddress, 201);
+            return response()->json(['success' => $userAddress], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], $e->getCode());
+        }
+    }
+
+    public function uploadAvatar(UploadUserAvatarRequest $avatarRequest)
+    {
+        try {
+            $avatarUrl = $this->profileService->uploadAvatar($avatarRequest->file('avatar'));
+
+            return response()->json(['success' => 'Avatar uploaded successfully', 'url' => $avatarUrl]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function update(UpdateUserAddressRequest $addressRequest)
     {
-        $userAddressUp = $this->profileService->update($addressRequest->getDTO());
+        try {
+            $addressDTO = UpdateUserAddressDTO::fromRequest($addressRequest);
+            $userAddressUp = $this->profileService->update($addressDTO);
 
-        if ($userAddressUp) {
-            return response()->json(['success' => 'The address has been successfully updated'] , 201);
+            return response()->json(['success' => $userAddressUp], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], $e->getCode());
         }
+    }
 
-        return response()->json(['error' => 'There was an error during address update'] , 500);
+    public function updateAvatar(UploadUserAvatarRequest $avatarRequest)
+    {
+        try {
+            $avatarUrl = $this->profileService->updateAvatar($avatarRequest->file('avatar'));
+
+            return response()->json(['success' => 'Avatar updated successfully', 'url' => $avatarUrl]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function destroy()
     {
-        $deletedAddress = $this->profileService->destroy();
+        try {
+            $this->profileService->destroy();
 
-        if ($deletedAddress){
-            return response()->json(['success' => 'The address has been successfully deleted'] , 201);
+            return response()->json(['success' => 'The address has been successfully deleted'], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], $e->getCode());
         }
+    }
 
-        return response()->json(['error' => 'An error occurred when deleting an address'], 500);
+    public function removeAvatar()
+    {
+        try {
+            $this->profileService->removeAvatar();
+
+            return response()->json(['success' => 'Avatar deleted successfully'], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

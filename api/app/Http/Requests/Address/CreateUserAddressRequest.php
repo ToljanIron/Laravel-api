@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Address;
 
-use App\DataTransferObjects\CreateUserAddressDTO;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateUserAddressRequest extends FormRequest
@@ -29,16 +28,5 @@ class CreateUserAddressRequest extends FormRequest
             'zip' => 'required|string|max:20',
             'phone' => 'required|string|max:20',
         ];
-    }
-
-    public function getDTO(): CreateUserAddressDTO
-    {
-        return new CreateUserAddressDTO(
-            $this->input('address_line_1'),
-            $this->input('state'),
-            $this->input('city'),
-            $this->input('zip'),
-            $this->input('phone'),
-        );
     }
 }

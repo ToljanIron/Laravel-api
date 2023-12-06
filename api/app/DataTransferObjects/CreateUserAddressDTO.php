@@ -2,26 +2,27 @@
 
 namespace App\DataTransferObjects;
 
+use App\Http\Requests\Address\CreateUserAddressRequest;
+
 class CreateUserAddressDTO
 {
-    public string $address_line_1;
-    public string $state;
-    public string $city;
-    public string $zip;
-    public string $phone;
-
     public function __construct(
-        string $address_line_1,
-        string $state,
-        string $city,
-        string $zip,
-        string $phone
+        public readonly string $address_line_1,
+        public readonly string $state,
+        public readonly string $city,
+        public readonly string $zip,
+        public readonly string $phone
     )
+    {}
+
+    public static function fromRequest(CreateUserAddressRequest $request): CreateUserAddressDTO
     {
-        $this->address_line_1 = $address_line_1;
-        $this->state = $state;
-        $this->city = $city;
-        $this->zip = $zip;
-        $this->phone = $phone;
+        return new self(
+            $request->input('address_line_1'),
+            $request->input('state'),
+            $request->input('city'),
+            $request->input('zip'),
+            $request->input('phone'),
+        );
     }
 }

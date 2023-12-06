@@ -43,7 +43,7 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    public function userAddresses()
+    public function userAddresses(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(UserAddress::class);
     }
