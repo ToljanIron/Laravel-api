@@ -2,57 +2,195 @@
 
 namespace App\Services;
 
-use App\DataTransferObjects\CreateUserAddressDTO;
-use App\DataTransferObjects\UpdateUserAddressDTO;
-use App\Interfaces\ProfileServiceInterface;
+use App\Models\UserAddress;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
-class ProfileService implements ProfileServiceInterface
+class ProfileService
 {
-    public function show()
+    protected function getUserAddress()
     {
-        $user = auth()->user();
-
-        return $user->userAddresses;
+        return auth()->user()->userAddresses()->first();
     }
 
-    public function store(CreateUserAddressDTO $addressDTO)
+    /**
+     * @return mixed
+     * @throws \Exception
+     */
+    public function show(): mixed
     {
-        $user = auth()->user();
-        $userAddress = $user->userAddresses;
+        $userAddress = $this->getUserAddress();
 
-        if ($userAddress) {
-            return response()->json(['message' => 'User address already exists'], 400);
+        Log::info('This is some useful information.');
+        Log::warning('Something could be going wrong.');
+        Log::error('Something is really going wrong.');
+
+        if (!$userAddress) {
+            throw new \Exception('Address not found', 404);
         }
 
-        return $user->userAddresses()->create([
-            'user_id' => $user->id,
-            'address_line_1' => $addressDTO->address_line_1,
-            'state' => $addressDTO->state,
-            'city' => $addressDTO->city,
-            'zip' => $addressDTO->zip,
-            'phone' => $addressDTO->phone
-        ]);
+        return $userAddress;
     }
 
-    public function update(UpdateUserAddressDTO $addressDTO)
+    /**
+     * @param $dto
+     * @return UserAddress
+     * @throws \Exception
+     */
+    public function store($dto): UserAddress
     {
         $user = auth()->user();
-        $userAddress = $user->userAddresses()->first();
+        if ($user->userAddresses()->exists()) {
+            throw new \Exception('User address already exists', 400);
+        }
 
-        return $userAddress->update([
-            'address_line_1' => $addressDTO->address_line_1,
-            'state' => $addressDTO->state,
-            'city' => $addressDTO->city,
-            'zip' => $addressDTO->zip,
-            'phone' => $addressDTO->phone
-        ]);
+        $userAddress = new UserAddress();
+
+        $userAddress->user_id = $user->id;
+        $userAddress->address_line_1 = $dto->address_line_1;
+        $userAddress->state = $dto->state;
+        $userAddress->city = $dto->city;
+        $userAddress->zip = $dto->zip;
+        $userAddress->phone = $dto->phone;
+        $userAddress->save();
+
+        return $userAddress;
     }
 
-    public function destroy()
+    /**
+     * @param $avatar
+     * @param string $disk
+     * @return string
+     * @throws \Exception
+     */
+    public function uploadAvatar($avatar, string $disk = 's3'): string
     {
         $user = auth()->user();
-        $userAddress = $user->userAddresses;
+        $path = 'avatars-' . Str::random(12) . '-' . $user->id . '.' . $avatar->getClientOriginalExtension();
+        $disk = Storage::disk($disk);
 
-        return $userAddress->delete();
+        try {
+            $disk->put($path, file_get_contents($avatar), 'public');
+            $url = $disk->url($path);
+
+            $user->avatar = $url;
+            $user->save();
+
+            return $url;
+        } catch (\Exception $e) {
+            throw new \Exception('Avatar upload failed: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * @param $dto
+     * @return UserAddress
+     * @throws \Exception
+     */
+    public function update($dto): UserAddress
+    {
+        $userAddress = $this->getUserAddress();
+        if (!$userAddress) {
+            throw new \Exception('User address does not exist', 400);
+        }
+
+        $userAddress->address_line_1 = $dto->address_line_1;
+        $userAddress->state = $dto->state;
+        $userAddress->city = $dto->city;
+        $userAddress->zip = $dto->zip;
+        $userAddress->phone = $dto->phone;
+        $userAddress->save();
+
+        return $userAddress;
+    }
+
+    /**
+     * @param $avatar
+     * @param string $disk
+     * @return string
+     * @throws \Exception
+     */
+    public function updateAvatar($avatar, string $disk = 's3'): string
+    {
+        $user = auth()->user();
+
+        $existingAvatar = $user->avatar;
+
+        if ($existingAvatar) {
+            $this->deleteAvatar($existingAvatar, $disk);
+        }
+
+        $path = 'avatars-' . Str::random(12) . '-' . $user->id . '.' . $avatar->getClientOriginalExtension();
+        $disk = Storage::disk($disk);
+
+        try {
+            $disk->put($path, file_get_contents($avatar), 'public');
+            $url = $disk->url($path);
+
+            $user->avatar = $url;
+            $user->save();
+
+            return $url;
+        } catch (\Exception $e) {
+            throw new \Exception('Avatar update failed: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * @return bool
+     * @throws \Exception
+     */
+    public function destroy():bool
+    {
+        $userAddress = $this->getUserAddress();
+        if (!$userAddress) {
+            throw new \Exception('User address does not exist', 400);
+        }
+
+        $userAddress->delete();
+
+        return true;
+    }
+
+    /**
+     * @param string $disk
+     * @return bool
+     * @throws \Exception
+     */
+    public function removeAvatar(string $disk = 's3'): bool
+    {
+        $user = auth()->user();
+        $avatarUrl = $user->avatar;
+
+        if (!$avatarUrl) {
+            throw new \Exception('Avatar not found for the user', 404);
+        }
+
+        $this->deleteAvatar($avatarUrl, $disk);
+        $user->avatar = null;
+        $user->save();
+
+        return true;
+    }
+
+    /**
+     * @param $avatarUrl
+     * @param string $disk
+     * @return void
+     * @throws \Exception
+     */
+    protected function deleteAvatar($avatarUrl, string $disk = 's3'): void
+    {
+        $path = parse_url($avatarUrl, PHP_URL_PATH);
+        $disk = Storage::disk($disk);
+
+        try {
+            if ($disk->exists($path)) {
+                $disk->delete($path);
+            }
+        } catch (\Exception $e) {
+            throw new \Exception('Deleting the avatar you are using failed' . $e->getMessage(), 500);
+        }
     }
 }
