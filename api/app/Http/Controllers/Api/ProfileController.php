@@ -12,8 +12,10 @@ use App\Services\ProfileService;
 
 class ProfileController extends Controller
 {
-    public function __construct(private ProfileService $profileService)
-    {}
+    private ProfileService $profileService;
+    public function __construct(ProfileService $profileService) {
+        $this->profileService = $profileService;
+    }
 
     public function show()
     {

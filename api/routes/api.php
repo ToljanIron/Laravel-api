@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -28,6 +29,9 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('/user-upload-avatar', [ProfileController::class, 'uploadAvatar'])->name('upload.avatar');
     Route::put('/user-update-avatar', [ProfileController::class, 'updateAvatar'])->name('update.avatar');
     Route::delete('/user-remove-avatar', [ProfileController::class, 'removeAvatar'])->name('remove.avatar');
+
+    Route::get('/list-users', [AdminController::class, 'getUsers'])->name('list.users');
+
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
