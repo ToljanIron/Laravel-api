@@ -14,7 +14,7 @@ class VerifyEmailMiddleware
 
         if ($user) {
             if (!$user->hasVerifiedEmail()){
-                $url = url('/verify-email/' . $user->id . '/' . sha1($user->getEmailForVerification()));
+                $url = config('app.frontend_url') . '/verify-email/' . $user->id . '/' . sha1($user->getEmailForVerification());
                 event(new UserRegistered($user, $url));
 
                 return response()->json(['message' => 'Your email address is not verified.'], 403);

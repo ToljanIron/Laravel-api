@@ -7,19 +7,42 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserResource extends JsonResource
 {
+    public static $wrap = null;
+
+    public function __construct($resource)
+    {
+        parent::__construct($resource);
+        JsonResource::withoutWrapping();
+    }
+
     /**
      * Transform the resource into an array.
      *
-     * @return array<string, mixed>
+     * @param  \Illuminate\Http\Request  $request
+     * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'verified' => isset($this->email_verified_at),
-            'created' => $this->created_at
+            'users' => $this->resource->getCollection()->transform(function($users) {
+                return [
+                    'id' => $users->id,
+                    'name' => $users->name,
+                    'email' => $users->email,
+                    'verified' => isset($users->email_verified_at),
+                    'created' => $users->created_at
+                ];
+            }),
+            'pagination' => [
+                'current_page' => $this->resource->currentPage(),
+                'last_page'    => $this->resource->lastPage(),
+                'per_page'     => $this->resource->perPage(),
+                'next_page_url'=> $this->resource->nextPageUrl(),
+                'prev_page_url'=> $this->resource->previousPageUrl(),
+                'total'        => $this->resource->total(),
+                'from'         => $this->resource->firstItem(),
+                'to'           => $this->resource->lastItem(),
+            ],
         ];
     }
 }

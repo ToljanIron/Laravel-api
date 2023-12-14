@@ -18,6 +18,8 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'frontend_url' => env('FRONTEND_URL', 'http://13.53.182.58'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

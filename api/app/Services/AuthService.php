@@ -73,6 +73,6 @@ final class AuthService implements AuthInterface
 
     private function createUrlVerification(User $user): string
     {
-        return url('/verify-email/' . $user->id . '/' . sha1($user->getEmailForVerification()));
+        return  config('app.frontend_url') . '/verify-email/' . $user->id . '/' . sha1($user->getEmailForVerification());
     }
 }

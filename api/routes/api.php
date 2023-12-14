@@ -30,11 +30,11 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::put('/user-update-avatar', [ProfileController::class, 'updateAvatar'])->name('update.avatar');
     Route::delete('/user-remove-avatar', [ProfileController::class, 'removeAvatar'])->name('remove.avatar');
 
+    Route::get('/list-users', [AdminController::class, 'getUsers'])->name('list.users');
+    Route::post('/seed-users', [AdminController::class, 'seedUsers'])->name('seed.users');
+
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
-
-Route::get('/list-users', [AdminController::class, 'getUsers'])->name('list.users');
-
 
 
 
