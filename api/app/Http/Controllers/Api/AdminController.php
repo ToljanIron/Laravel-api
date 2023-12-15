@@ -26,7 +26,6 @@ class AdminController extends Controller
 
     public function seedUsers(SeedUsersRequest $request)
     {
-        return response()->json(['success' => 'Users seeded successfully!'], 201);
         $seedUsers = $this->adminService->seedUsers($request->input('count'));
 
         if ($seedUsers->isEmpty()) {
