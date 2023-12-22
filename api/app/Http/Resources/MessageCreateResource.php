@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserResource extends JsonResource
+class MessageCreateResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,10 +17,10 @@ class UserResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'verified' => isset($this->email_verified_at),
-            'created' => Carbon::parse($this->created_at)->format('d.m H:i')
+            'chat' => $this->chat,
+            'user' => $this->user,
+            'content' => $this->content,
+            'created_at' => Carbon::parse($this->created_at)->format('d.m H:i'),
         ];
     }
 }

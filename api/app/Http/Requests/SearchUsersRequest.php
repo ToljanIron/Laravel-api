@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Address;
+namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UploadUserAvatarRequest extends FormRequest
+class SearchUsersRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,8 +22,7 @@ class UploadUserAvatarRequest extends FormRequest
     public function rules(): array
     {
         return [
-//            'avatar' => 'nullable|image|mimes:jpeg,png,jpg|max:65536',
+            'email' => 'required|string'
         ];
     }
 }
-

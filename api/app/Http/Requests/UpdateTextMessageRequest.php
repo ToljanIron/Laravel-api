@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Address;
+namespace App\Http\Requests;
 
+use App\DataTransferObjects\UpdateTextMessageDTO;
 use Illuminate\Foundation\Http\FormRequest;
 
-class UploadUserAvatarRequest extends FormRequest
+class UpdateTextMessageRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,8 +23,14 @@ class UploadUserAvatarRequest extends FormRequest
     public function rules(): array
     {
         return [
-//            'avatar' => 'nullable|image|mimes:jpeg,png,jpg|max:65536',
+            'content' => 'required|string|min:1|max:255'
         ];
     }
-}
 
+    public function getDTO(): UpdateTextMessageDTO
+    {
+        return new UpdateTextMessageDTO(
+            $this->input('content'),
+        );
+    }
+}

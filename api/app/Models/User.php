@@ -47,4 +47,29 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserAddress::class);
     }
+
+    public function chats(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Chat::class, 'chat_user', 'user_id', 'chat_id')->withTimestamps();
+    }
+
+    public function getOrCreateChatWith(User $otherUser)
+    {
+        return $this->chats()->whereHas('users', function ($query) use ($otherUser) {
+            $query->where('user_id', $otherUser->id);
+        })->firstOr(function () use ($otherUser) {
+            $chat = new Chat();
+            $chat->owner_id = $this->id;
+            $chat->save();
+            $chat->users()->attach([$otherUser->id, $this->id]);
+            return $chat;
+        });
+    }
+
+    public function messages(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Message::class);
+    }
+
+
 }

@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 
@@ -32,6 +35,17 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     Route::get('/list-users', [AdminController::class, 'getUsers'])->name('list.users');
     Route::post('/seed-users', [AdminController::class, 'seedUsers'])->name('seed.users');
+
+    Route::get('/chat/create/{id}', [ChatController::class, 'create'])->name('create.chat');
+    Route::get('/chats', [ChatController::class, 'getChats'])->name('user.chats');
+    Route::get('/chat/{id}', [ChatController::class, 'getChatById'])->name('chat');
+    Route::delete('/delete/chat/{id}', [ChatController::class, 'delete'])->name('delete.chat');
+
+    Route::post('/send/message', [MessageController::class, 'send'])->name('send.message');
+    Route::put('/update/message/{id}', [MessageController::class, 'update'])->name('update.message');
+    Route::delete('/delete/message/{id}', [MessageController::class, 'delete'])->name('delete.message');
+
+    Route::post('/chat/search-user',[UserController::class, 'searchUsers'])->name('search.user');
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
