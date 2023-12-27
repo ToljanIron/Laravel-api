@@ -42,7 +42,7 @@ class MessageService
                 'content' => $dto->content,
             ]);
 
-            $this->selectRecipients($message->chat, auth()->user(), 'message-update', $message, 'chat-channel.');
+            $this->selectRecipients($message->chat, auth()->user(), 'message-update', new MessageResource($message), 'chat-channel.');
 
             return $message;
         }
@@ -57,7 +57,7 @@ class MessageService
         if ($message->isOwnedByUser(auth()->user()->id)) {
             $message->delete();
 
-            $this->selectRecipients($message->chat, auth()->user(), 'message-delete', ['id' => $id], 'chat-channel.');
+            $this->selectRecipients($message->chat, auth()->user(), 'message-delete', new MessageResource($message), 'chat-channel.');
 
             return true;
         }
